@@ -8,7 +8,7 @@ WINDOW_WIDTH = 600
 WINDOW_HEIGHT = 300
 
 display_surface = pygame.display.set_mode((WINDOW_WIDTH,WINDOW_HEIGHT))
-pygame.display.set_caption("Continuous Movement!")
+pygame.display.set_caption("Restricted Movement!")
 
 #Set FPS and clock
 FPS = 60
@@ -34,13 +34,13 @@ while running:
     print(keys)
     
     #Move the dragon continuously
-    if keys[pygame.K_LEFT]:
+    if (keys[pygame.K_LEFT] or keys[pygame.K_a]) and dragon_rect.left > 0:
         dragon_rect.x -= VELOCITY
-    if keys[pygame.K_RIGHT]:
+    if (keys[pygame.K_RIGHT] or keys[pygame.K_d]) and dragon_rect.right < WINDOW_WIDTH:
         dragon_rect.x += VELOCITY
-    if keys[pygame.K_UP]:
+    if (keys[pygame.K_UP] or keys[pygame.K_w]) and dragon_rect.top > 0:
         dragon_rect.y -= VELOCITY
-    if keys[pygame.K_DOWN]:
+    if (keys[pygame.K_DOWN] or keys[pygame.K_s]) and dragon_rect.bottom < WINDOW_HEIGHT:
         dragon_rect.y += VELOCITY
     
     #Fill the display
