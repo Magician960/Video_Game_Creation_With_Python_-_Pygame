@@ -21,7 +21,7 @@ class Game():
     def __init__(self, player, alien_group, player_bullet_group, alien_bullet_group):
         """Initialise the game"""
         #Set game values
-        self.round_number = 5
+        self.round_number = 1
         self.score = 0
 
         self.player = player
@@ -97,16 +97,32 @@ class Game():
             if breach:
                 self.breach_sound.play()
                 self.player.lives -= 1
-                self.check_game_status()
+                self.check_game_status("Aliens breached the line!", "Press 'Enter' to continue")
 
 
     def check_collisions(self):
         """Check for collisions"""
-        pass
+        #See if any bullet in the player group hit an alien in the alien group
+        if pygame.sprite.groupcollide(self.player_bullet_group, self.alien_group, True, True):
+            self.alien_hit_sound.play()
+            self.score += 100
+        
+        #See if the player has collided with any bullet in the alien bulle group
+        if pygame.sprite.spritecollide(self.player, self.alien_bullet_group, True):
+            self.player_hit_sound.play()
+            self.player.lives -= 1
+            self.check_game_status("You've been hit!", "Press 'Enter' to continue")
 
     def check_round_completion(self):
         """Check to see if a player has completed a single round"""
-        pass
+        #If the alien group is empty, you've completed the round
+        if not self.alien_group:
+            self.score += 1000 * self.round_number
+            self.round_number += 1
+
+            self.start_new_round()
+
+
 
     def start_new_round(self):
         """Start a new round"""
@@ -115,20 +131,84 @@ class Game():
             for j in range(5):
                 alien = Alien(64 + i*64, 64 + j*64, self.round_number, self.alien_bullet_group)
                 self.alien_group.add(alien)
+        
+        #Empty the bullet groups and reset the player and remaining aliens
+        self.alien_bullet_group.empty()
+        self.player_bullet_group.empty()
 
         #Pause the game and prompt the user to start
         self.new_round_sound.play()
-        self.pause_game()
+        self.pause_game(f"Space Invaders Round {self.round_number}", "Press 'Enter' to begin")
 
-    def check_game_status(self):
+    def check_game_status(self, main_text, sub_text):
         """Check to see the status of the game and how the player died"""
-        pass
+        #Empty the bullet groups and reset the player and remaining aliens
+        self.alien_bullet_group.empty()
+        self.player_bullet_group.empty()
+        self.player.reset()
+        for alien in self.alien_group:
+            alien.reset()
 
-    def pause_game(self):
+        #Check if the game is over or if it is a simple round reset
+        if self.player.lives == 0:
+            self.reset_game()
+        else:
+            self.pause_game(main_text, sub_text)
+
+    def pause_game(self, main_text, sub_text):
         """Pause the game"""
+        global running 
+
+        #Set colors
+        WHITE = (255,255,255)
+        BLACK = (0,0,0)
+
+        #Create main pause text
+        main_text = self.font.render(main_text, True, WHITE)
+        main_rect = main_text.get_rect()
+        main_rect.center = (WINDOW_WIDTH//2, WINDOW_HEIGHT//2)
+
+        #Create sub pause text
+        sub_text = self.font.render(sub_text, True, WHITE)
+        sub_rect = sub_text.get_rect()
+        sub_rect.center = (WINDOW_WIDTH//2, WINDOW_HEIGHT//2 + 64)
+
+        #Blit the pause text
+        display_surface.fill(BLACK)
+        display_surface.blit(main_text, main_rect)
+        display_surface.blit(sub_text, sub_rect)
+        pygame.display.update()
+
+        #Pause the game until the user hits enter
+        is_paused = True
+        while is_paused:
+            for event in pygame.event.get():
+                #The user wants to play again
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_RETURN:
+                        is_paused = False
+                #The user wants to quit
+                if event.type == pygame.QUIT:
+                    is_paused = False
+                    running = False
 
     def reset_game(self):
         """Reset the game"""
+        self.pause_game(f"Final Score: {self.score}", "Press 'Enter' to play again")
+
+        #Reset game values
+        self.score = 0
+        self.round_number = 1
+        
+        self.player.lives = 5
+
+        #Empty groups
+        self.alien_group.empty()
+        self.alien_bullet_group.empty()
+        self.player_bullet_group.empty()
+
+        #Start a new game
+        self.start_new_round()
 
 class Player(pygame.sprite.Sprite):
     """A class to model a spaceship the user can control"""
