@@ -141,56 +141,413 @@ class Tile(pygame.sprite.Sprite):
 class Player(pygame.sprite.Sprite):
     """A class the user can control"""
 
-    def __init__(self):
+    def __init__(self, x, y, platform_group, portal_group, bullet_group):
         """Initialise the player"""
-        pass
+        super().__init__()
+
+        #Set constant variables
+        self.HORIZONTAL_ACCELERATION = 2
+        self.HORIZONTAL_FRICTION = 0.15
+        self.VERTICAL_ACCELERATION = 0.8 #Gravity
+        self.VERTICAL_JUMP_SPEED = 18 #Determines how high the player can jump
+        self.STARTING_HEALTH = 100
+
+        #Animation frames
+        self.move_right_sprites = []
+        self.move_left_sprites = []
+        self.idle_right_sprites = []
+        self.idle_left_sprites = []
+        self.jump_right_sprites = []
+        self.jump_left_sprites = []
+        self.attack_right_sprites = []
+        self.attack_left_sprites = []
+
+        #Moving
+        self.move_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/player/run/Run (1).png"), (64, 64)))
+        self.move_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/player/run/Run (2).png"), (64, 64)))
+        self.move_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/player/run/Run (3).png"), (64, 64)))
+        self.move_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/player/run/Run (4).png"), (64, 64)))
+        self.move_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/player/run/Run (5).png"), (64, 64)))
+        self.move_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/player/run/Run (6).png"), (64, 64)))
+        self.move_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/player/run/Run (7).png"), (64, 64)))
+        self.move_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/player/run/Run (8).png"), (64, 64)))
+        self.move_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/player/run/Run (9).png"), (64, 64)))
+        self.move_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/player/run/Run (10).png"), (64, 64)))
+        
+        for sprite in self.move_right_sprites:
+            self.move_left_sprites.append(pygame.transform.flip(sprite, True, False))
+
+        #Idling
+        self.idle_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/player/idle/Idle (1).png"), (64, 64)))
+        self.idle_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/player/idle/Idle (2).png"), (64, 64)))
+        self.idle_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/player/idle/Idle (3).png"), (64, 64)))
+        self.idle_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/player/idle/Idle (4).png"), (64, 64)))
+        self.idle_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/player/idle/Idle (5).png"), (64, 64)))
+        self.idle_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/player/idle/Idle (6).png"), (64, 64)))
+        self.idle_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/player/idle/Idle (7).png"), (64, 64)))
+        self.idle_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/player/idle/Idle (8).png"), (64, 64)))
+        self.idle_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/player/idle/Idle (9).png"), (64, 64)))
+        self.idle_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/player/idle/Idle (10).png"), (64, 64)))
+        
+        for sprite in self.idle_right_sprites:
+            self.idle_left_sprites.append(pygame.transform.flip(sprite, True, False))
+
+        #Jumping
+        self.jump_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/player/jump/Jump (1).png"), (64, 64)))
+        self.jump_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/player/jump/Jump (2).png"), (64, 64)))
+        self.jump_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/player/jump/Jump (3).png"), (64, 64)))
+        self.jump_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/player/jump/Jump (4).png"), (64, 64)))
+        self.jump_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/player/jump/Jump (5).png"), (64, 64)))
+        self.jump_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/player/jump/Jump (6).png"), (64, 64)))
+        self.jump_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/player/jump/Jump (7).png"), (64, 64)))
+        self.jump_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/player/jump/Jump (8).png"), (64, 64)))
+        self.jump_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/player/jump/Jump (9).png"), (64, 64)))
+        self.jump_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/player/jump/Jump (10).png"), (64, 64)))
+        
+        for sprite in self.jump_right_sprites:
+            self.jump_left_sprites.append(pygame.transform.flip(sprite, True, False))
+
+        #Attacking
+        self.attack_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/player/attack/Attack (1).png"), (64, 64)))
+        self.attack_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/player/attack/Attack (2).png"), (64, 64)))
+        self.attack_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/player/attack/Attack (3).png"), (64, 64)))
+        self.attack_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/player/attack/Attack (4).png"), (64, 64)))
+        self.attack_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/player/attack/Attack (5).png"), (64, 64)))
+        self.attack_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/player/attack/Attack (6).png"), (64, 64)))
+        self.attack_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/player/attack/Attack (7).png"), (64, 64)))
+        self.attack_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/player/attack/Attack (8).png"), (64, 64)))
+        self.attack_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/player/attack/Attack (9).png"), (64, 64)))
+        self.attack_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/player/attack/Attack (10).png"), (64, 64)))
+        
+        for sprite in self.attack_right_sprites:
+            self.attack_left_sprites.append(pygame.transform.flip(sprite, True, False))
+
+        #Load image and get rect
+        self.current_sprite = 0
+        self.image = self.idle_right_sprites[self.current_sprite]
+        self.rect = self.image.get_rect()
+        self.rect.bottomleft = (x, y)
+
+        #Attach sprite groups
+        self.platform_group = platform_group
+        self.portal_group = portal_group
+        self.bullet_group = bullet_group
+
+        #Animation bolleans
+        self.animate_jump = False
+        self.animate_fire = False
+
+        #Load sounds
+        self.jump_sound = pygame.mixer.Sound("zombie_knight_assets/sounds/jump_sound.wav")
+        self.slash_sound = pygame.mixer.Sound("zombie_knight_assets/sounds/slash_sound.wav")
+        self.portal_sound = pygame.mixer.Sound("zombie_knight_assets/sounds/portal_sound.wav")
+        self.hit_sound = pygame.mixer.Sound("zombie_knight_assets/sounds/player_hit.wav")
+
+        #Kinematics vectors
+        self.position = vector(x, y)
+        self.velocity = vector(0, 0)
+        self.acceleration = vector(0, self.VERTICAL_ACCELERATION)
+
+        #Set initial player values
+        self.health = self.STARTING_HEALTH
+        self.starting_x = x
+        self.starting_y = y
 
     def update(self):
         """Update the player"""
+        self.move()
+        self.check_collisions()
+        self.check_animations()
 
     def move(self):
         """Move the player"""
-        pass
+        #Set the acceleration vector (default when idle)
+        self.acceleration = vector(0, self.VERTICAL_ACCELERATION)
+
+        #If the user is pressing a key, set the x-component of the acceleration to be non-zero
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_LEFT]:
+            self.acceleration.x = -1 * self.HORIZONTAL_ACCELERATION
+            self.animate(self.move_left_sprites, .5)
+        elif keys[pygame.K_RIGHT]:
+            self.acceleration.x = self.HORIZONTAL_ACCELERATION
+            self.animate(self.move_right_sprites, .5)
+        else:
+            if self.velocity.x > 0:
+                self.animate(self.idle_right_sprites, .5)
+            else:
+                self.animate(self.idle_left_sprites, .5)
+
+        #Calculate new kinematics values
+        self.acceleration.x -= self.velocity.x * self.HORIZONTAL_FRICTION
+        self.velocity += self.acceleration
+        self.position += self.velocity + 0.5*self.acceleration
+
+        #Update rect based on kinematic calculations and add wrap around movement
+        if self.position.x < 0:
+            self.position.x = WINDOW_WIDTH
+        elif self.position.x > WINDOW_WIDTH:
+            self.position.x = 0
+        
+        self.rect.bottomleft = self.position
 
     def check_collisions(self):
         """Check for collisions with platforms and portals"""
-        pass
+        #Collision check between player and platforms when falling
+        if self.velocity.y > 0:
+            collided_platforms = pygame.sprite.spritecollide(self, self.platform_group, False)
+            if collided_platforms:
+                # + 1 is to ensure the player rect is continuously colliding with platform
+                self.position.y = collided_platforms[0].rect.top + 1
+                self.velocity.y = 0
+        
+        #Collision check between player and platforms if jumping up
+        if self.velocity.y < 0:
+            collided_platforms = pygame.sprite.spritecollide(self, self.platform_group, False)
+            if collided_platforms:
+                self.velocity.y = 0
+                while pygame.sprite.spritecollide(self, self.platform_group, False):
+                    self.position.y += 1
+                    self.rect.bottomleft = self.position
+        
+        #Collision check for portals
+        if pygame.sprite.spritecollide(self, self.portal_group, False):
+            self.portal_sound.play()
+            #Determine which portal you are moving to
+            #Left and right
+            if self.position.x > WINDOW_WIDTH//2:
+                self.position.x = 86
+            else:
+                self.position.x = WINDOW_WIDTH - 150
+            #Top and bottom
+            if self.position.y > WINDOW_HEIGHT//2:
+                self.position.y = 64
+            else:
+                self.position.y = WINDOW_HEIGHT - 132
+
+            self.rect.bottomleft = self.position
 
     def check_animations(self):
         """Check to see if jump/fire animations should run"""
-        pass
+        #Animate the player jump:
+        if self.animate_jump:
+            if self.velocity.x > 0:
+                self.animate(self.jump_right_sprites, .1)
+            else:
+                self.animate(self.jump_left_sprites, .1)
+        
+        if self.animate_fire:
+            if self.velocity.x > 0:
+                self.animate(self.attack_right_sprites, .25)
+            else:
+                self.animate(self.attack_left_sprites, .25)
 
     def jump(self):
         """Jump upwards if on a platform"""
-        pass
+        #Only jump if on a platform
+        if pygame.sprite.spritecollide(self, self.platform_group, False):
+            self.jump_sound.play()
+            self.velocity.y = -1 * self.VERTICAL_JUMP_SPEED
+            self.animate_jump = True
 
     def fire(self):
         """Fire a 'bullet' from a sword"""
-        pass
+        self.slash_sound.play()
+        Bullet(self.rect.centerx, self.rect.centery, self.bullet_group, self)
+        self.animate_fire = True
 
     def reset(self):
         """Reset the player's position"""
-        pass
-    def animate(self):
+        self.position = vector(self.starting_x, self.starting_y)
+        self.rect.bottomleft = self.position
+
+    def animate(self, sprite_list, speed):
         """Animate the player's actions"""
-        pass
+        if self.current_sprite < len(sprite_list) - 1:
+            self.current_sprite += speed
+        else:
+            self.current_sprite = 0
+            #End the jump animation
+            if self.animate_jump:
+                self.animate_jump = False
+            #End the attack animation
+            if self.animate_fire:
+                self.animate_fire = False
+
+        self.image = sprite_list[int(self.current_sprite)]
+
 
 class Bullet(pygame.sprite.Sprite):
     """A projectile launched by the player"""
 
-    def __init__(self):
+    def __init__(self, x, y, bullet_group, player):
         """Initialise the bullet"""
-        pass
+        super().__init__()
 
-    def __update__(self):
+        #Set constant variables
+        self.VELOCITY = 20
+        self.RANGE = 500
+
+        #Load image and get rect
+        if player.velocity.x > 0:
+            self.image = pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/player/slash.png"), (32,32))
+        else:
+            self.image = pygame.transform.scale(pygame.transform.flip(pygame.image.load("zombie_knight_assets/images/player/slash.png"), True, False), (32,32))
+            self.VELOCITY *= -1
+        
+        self.rect = self.image.get_rect()
+        self.rect.center = (x, y)
+
+        self.starting_x = x
+
+        bullet_group.add(self)
+
+    def update(self):
         """Update the bullet"""
-        pass    
+        self.rect.x += self.VELOCITY
+
+        #If the bullet has passed the range, kill it
+        if abs(self.rect.x - self.starting_x) > self.RANGE:
+            self.kill()
 
 class Zombie(pygame.sprite.Sprite):
     """An enemy class that moves across the screen"""
-    def __init__(self):
+    def __init__(self, platform_group, portal_group, min_speed, max_speed):
         """Initialise the zombie"""
-        pass
+        super().__init__()
+
+        #Set constant variables
+        self.VERTICAL_ACCELERATION = 3 #Gravity
+        self.RISE_TIME = 2
+
+        #Animation frames
+        self.walk_right_sprites = []
+        self.walk_left_sprites = []
+        self.die_right_sprites = []
+        self.die_left_sprites = []
+        self.rise_right_sprites = []
+        self.rise_left_sprites = []
+
+        gender = random.randint(0,1)
+        if gender == 0:
+            #Walking
+            self.walk_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/zombie/boy/walk/Walk (1).png"), (64,64)))
+            self.walk_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/zombie/boy/walk/Walk (2).png"), (64,64)))
+            self.walk_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/zombie/boy/walk/Walk (3).png"), (64,64)))
+            self.walk_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/zombie/boy/walk/Walk (4).png"), (64,64)))
+            self.walk_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/zombie/boy/walk/Walk (5).png"), (64,64)))
+            self.walk_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/zombie/boy/walk/Walk (6).png"), (64,64)))
+            self.walk_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/zombie/boy/walk/Walk (7).png"), (64,64)))
+            self.walk_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/zombie/boy/walk/Walk (8).png"), (64,64)))
+            self.walk_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/zombie/boy/walk/Walk (9).png"), (64,64)))
+            self.walk_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/zombie/boy/walk/Walk (10).png"), (64,64)))
+            for sprite in self.walk_right_sprites:
+                self.walk_left_sprites.append(pygame.transform.flip(sprite, True, False))
+            
+            #Dying
+            self.die_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/zombie/boy/dead/Dead (1).png"), (64,64)))
+            self.die_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/zombie/boy/dead/Dead (2).png"), (64,64)))
+            self.die_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/zombie/boy/dead/Dead (3).png"), (64,64)))
+            self.die_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/zombie/boy/dead/Dead (4).png"), (64,64)))
+            self.die_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/zombie/boy/dead/Dead (5).png"), (64,64)))
+            self.die_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/zombie/boy/dead/Dead (6).png"), (64,64)))
+            self.die_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/zombie/boy/dead/Dead (7).png"), (64,64)))
+            self.die_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/zombie/boy/dead/Dead (8).png"), (64,64)))
+            self.die_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/zombie/boy/dead/Dead (9).png"), (64,64)))
+            self.die_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/zombie/boy/dead/Dead (10).png"), (64,64)))
+            for sprite in self.die_right_sprites:
+                self.die_left_sprites.append(pygame.transform.flip(sprite, True, False))
+
+            #Rising
+            self.rise_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/zombie/boy/dead/Dead (10).png"), (64,64)))
+            self.rise_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/zombie/boy/dead/Dead (9).png"), (64,64)))
+            self.rise_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/zombie/boy/dead/Dead (8).png"), (64,64)))
+            self.rise_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/zombie/boy/dead/Dead (7).png"), (64,64)))
+            self.rise_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/zombie/boy/dead/Dead (6).png"), (64,64)))
+            self.rise_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/zombie/boy/dead/Dead (5).png"), (64,64)))
+            self.rise_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/zombie/boy/dead/Dead (4).png"), (64,64)))
+            self.rise_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/zombie/boy/dead/Dead (3).png"), (64,64)))
+            self.rise_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/zombie/boy/dead/Dead (2).png"), (64,64)))
+            self.rise_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/zombie/boy/dead/Dead (1).png"), (64,64)))
+            for sprite in self.rise_right_sprites:
+                self.rise_left_sprites.append(pygame.transform.flip(sprite, True, False))
+        else:
+            #Walking
+            self.walk_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/zombie/girl/walk/Walk (1).png"), (64,64)))
+            self.walk_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/zombie/girl/walk/Walk (2).png"), (64,64)))
+            self.walk_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/zombie/girl/walk/Walk (3).png"), (64,64)))
+            self.walk_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/zombie/girl/walk/Walk (4).png"), (64,64)))
+            self.walk_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/zombie/girl/walk/Walk (5).png"), (64,64)))
+            self.walk_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/zombie/girl/walk/Walk (6).png"), (64,64)))
+            self.walk_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/zombie/girl/walk/Walk (7).png"), (64,64)))
+            self.walk_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/zombie/girl/walk/Walk (8).png"), (64,64)))
+            self.walk_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/zombie/girl/walk/Walk (9).png"), (64,64)))
+            self.walk_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/zombie/girl/walk/Walk (10).png"), (64,64)))
+            for sprite in self.walk_right_sprites:
+                self.walk_left_sprites.append(pygame.transform.flip(sprite, True, False))
+            
+            #Dying
+            self.die_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/zombie/girl/dead/Dead (1).png"), (64,64)))
+            self.die_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/zombie/girl/dead/Dead (2).png"), (64,64)))
+            self.die_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/zombie/girl/dead/Dead (3).png"), (64,64)))
+            self.die_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/zombie/girl/dead/Dead (4).png"), (64,64)))
+            self.die_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/zombie/girl/dead/Dead (5).png"), (64,64)))
+            self.die_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/zombie/girl/dead/Dead (6).png"), (64,64)))
+            self.die_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/zombie/girl/dead/Dead (7).png"), (64,64)))
+            self.die_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/zombie/girl/dead/Dead (8).png"), (64,64)))
+            self.die_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/zombie/girl/dead/Dead (9).png"), (64,64)))
+            self.die_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/zombie/girl/dead/Dead (10).png"), (64,64)))
+            for sprite in self.die_right_sprites:
+                self.die_left_sprites.append(pygame.transform.flip(sprite, True, False))
+
+            #Rising
+            self.rise_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/zombie/girl/dead/Dead (10).png"), (64,64)))
+            self.rise_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/zombie/girl/dead/Dead (9).png"), (64,64)))
+            self.rise_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/zombie/girl/dead/Dead (8).png"), (64,64)))
+            self.rise_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/zombie/girl/dead/Dead (7).png"), (64,64)))
+            self.rise_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/zombie/girl/dead/Dead (6).png"), (64,64)))
+            self.rise_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/zombie/girl/dead/Dead (5).png"), (64,64)))
+            self.rise_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/zombie/girl/dead/Dead (4).png"), (64,64)))
+            self.rise_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/zombie/girl/dead/Dead (3).png"), (64,64)))
+            self.rise_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/zombie/girl/dead/Dead (2).png"), (64,64)))
+            self.rise_right_sprites.append(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/zombie/girl/dead/Dead (1).png"), (64,64)))
+            for sprite in self.rise_right_sprites:
+                self.rise_left_sprites.append(pygame.transform.flip(sprite, True, False))
+
+        #Load an image and get the rect
+        self.direction = random.choice([-1,1])
+
+        self.current_sprite = 0
+        if self.direction == -1:
+            self.image = self.walk_left_sprites[self.current_sprite]
+        else:
+            self.image = self.walk_right_sprites[self.current_sprite]
+        
+        self.rect = self.image.get_rect()
+        self.rect.bottomleft = (random.randint(100, WINDOW_WIDTH-100), -100)
+
+        #Attach sprite groups
+        self.platform_group = platform_group
+        self.portal_group = portal_group
+
+        #Animation booleans
+        self.animate_death = False
+        self.animate_rise = False
+
+        #Load sounds
+        self.hit_sound = pygame.mixer.Sound("zombie_knight_assets/sounds/zombie_hit.wav")
+        self.kick_sound = pygame.mixer.Sound("zombie_knight_assets/sounds/zombie_kick.wav")
+        self.portal_sound = pygame.mixer.Sound("zombie_knight_assets/sounds/portal_sound.wav")
+
+        #Kinematics vectors
+        self.position = vector(self.rect.x, self.rect.y)
+        self.velocity = vector(self.direction * random.randint(min_speed, max_speed), 0)
+        self.acceleration = vector(0, self.VERTICAL_ACCELERATION)
+
+        #Initial zombie values
+        self.is_dead = False
+        self.round_time = 0
+        self.frame_count = 0
 
     def update(self):
         """Update the zombie"""
@@ -390,7 +747,7 @@ tile_map = [
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 5, 0, 0, 0, 0, 0, 0, 0, 0, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 4, 4, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     [8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 0],
@@ -425,7 +782,8 @@ for i in range(len(tile_map)):
             Portal(j * 32, i * 32, "purple", my_portal_group)
         #Player
         elif tile_map[i][j] == 9:
-            pass
+            my_player = Player(j * 32 - 32, i * 32 + 32, my_platform_group, my_portal_group, my_bullet_group)
+            my_player_group.add(my_player)
 #Load in a background image (must resize)
 background_image = pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/background.png"), (1280,736))
 background_rect = background_image.get_rect()
@@ -441,6 +799,13 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+        if event.type == pygame.KEYDOWN:
+            #Player wants to jump
+            if event.key == pygame.K_SPACE:
+                my_player.jump()
+            #Player wants to fire
+            if event.key == pygame.K_UP:
+                my_player.fire()
     
     #Blit the background
     display_surface.blit(background_image, background_rect)
@@ -452,6 +817,12 @@ while running:
     #Update and draw sprite groups
     my_portal_group.update()
     my_portal_group.draw(display_surface)
+
+    my_player_group.update()
+    my_player_group.draw(display_surface)
+
+    my_bullet_group.update()
+    my_bullet_group.draw(display_surface)
 
     #Update and draw the game
     my_game.update()
